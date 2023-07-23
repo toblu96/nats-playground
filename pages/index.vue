@@ -3,6 +3,10 @@
     <template #header-content>
       <ClientOnly>
         <div class="flex space-x-6">
+          <UTooltip text="Roundtrip Delay" class="flex items-center space-x-2">
+            <UIcon name="i-fluent-timer-24-regular" class="w-6 h-6" />
+            {{ roundTripTimeMS }} ms
+          </UTooltip>
           <UTooltip text="Cient IP" class="flex items-center space-x-2">
             <UIcon name="i-fluent-laptop-24-regular" class="w-6 h-6" />
             {{ ncInfo?.client_ip }}
@@ -30,47 +34,69 @@
       </ClientOnly>
     </template>
     <div>
-      <h1>Synadia connection test</h1>
-      <p>Current route: {{ route.path }}</p>
-      <a href="https://nuxt.com/docs/getting-started/routing" target="_blank"
-        >Learn more about Nuxt Routing</a
+      <pre class="h-96 overflow-auto border rounded p-4 border-gray-200">{{
+        messages
+      }}</pre>
+      <form
+        @submit.prevent="publishMessage(message)"
+        class="flex space-x-2 mt-4 w-full justify-end"
       >
-
-      <div>
-        <UIcon class="w-10 h-10" name="i-skill-icons-gcp-light" />
-        <UIcon class="w-10 h-10" name="i-skill-icons-azure-light" />
-      </div>
-      <div>
-        <UIcon class="w-10 h-10" name="i-fluent-rocket-24-filled" />
-        <UIcon class="w-10 h-10" name="i-fluent-branch-24-filled" />
-      </div>
+        <UInput v-model="message" placeholder="Type a message..." />
+        <UButton @click="publishMessage(message)">Send</UButton>
+      </form>
     </div>
   </PageWrapperWithHeaderSlim>
 </template>
 
 <script setup lang="ts">
-import { ServerInfo, StringCodec, connect, credsAuthenticator } from "nats.ws";
+import {
+  JSONCodec,
+  NatsConnection,
+  ServerInfo,
+  StringCodec,
+  connect,
+  credsAuthenticator,
+} from "nats.ws";
 const route = useRoute();
 
 const ncInfo = ref<ServerInfo | undefined>(undefined);
+const roundTripTimeMS = ref<number>(0);
+
+const message = ref<string>("");
+const messages = ref<string>("");
+let nc: NatsConnection;
+const sc = StringCodec();
+const jc = JSONCodec();
 
 if (process.client) {
-  const sc = StringCodec();
-
   const creds = await fetch("./myuser.creds");
   if (!creds.ok) {
     console.log("unable to find ./myuser.creds - aborting");
   }
   const token = await creds.text();
   const auth = credsAuthenticator(sc.encode(token));
-  const nc = await connect({
+  nc = await connect({
     servers: "wss://connect.ngs.global",
     authenticator: auth,
     // debug: true,
   });
   console.log(`connected to ${nc.getServer()}`);
 
-  console.log(nc.info);
   ncInfo.value = nc.info;
+  roundTripTimeMS.value = await nc.rtt();
+
+  nc.subscribe("chat", {
+    callback(err, msg) {
+      messages.value += `${jc.decode(msg.data).msg}\n`;
+    },
+  });
+
+  nc.publish("chat", jc.encode({ msg: "Hi there! Type a message :)" }));
+  console.log(nc.jetstream().consumers);
 }
+
+const publishMessage = (msg: string) => {
+  nc.publish("chat", jc.encode({ msg }));
+  message.value = "";
+};
 </script>
