@@ -1,6 +1,34 @@
 <template>
-  <PageWrapperWithHeaderSlim title="Dash">
-    <template #header-content>{{ ncInfo?.server_name }}</template>
+  <PageWrapperWithHeaderSlim title="Dashboard">
+    <template #header-content>
+      <ClientOnly>
+        <div class="flex space-x-6">
+          <UTooltip text="Cient IP" class="flex items-center space-x-2">
+            <UIcon name="i-fluent-laptop-24-regular" class="w-6 h-6" />
+            {{ ncInfo?.client_ip }}
+          </UTooltip>
+          <UTooltip
+            text="Connected nats server"
+            class="flex items-center space-x-2"
+          >
+            <UIcon
+              v-if="ncInfo?.server_name.startsWith('gcp')"
+              class="w-6 h-6"
+              name="i-skill-icons-gcp-light"
+            />
+            <UIcon
+              v-else-if="ncInfo?.server_name.startsWith('azure')"
+              class="w-6 h-6"
+              name="i-skill-icons-azure-light"
+            />
+            <UIcon v-else class="w-6 h-6" name="i-skill-icons-aws-light" />
+            <div>
+              {{ ncInfo?.server_name }}
+            </div>
+          </UTooltip>
+        </div>
+      </ClientOnly>
+    </template>
     <div>
       <h1>Synadia connection test</h1>
       <p>Current route: {{ route.path }}</p>
@@ -24,7 +52,7 @@
 import { ServerInfo, StringCodec, connect, credsAuthenticator } from "nats.ws";
 const route = useRoute();
 
-const ncInfo = ref<ServerInfo>();
+const ncInfo = ref<ServerInfo | undefined>(undefined);
 
 if (process.client) {
   const sc = StringCodec();
