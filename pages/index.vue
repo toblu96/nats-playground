@@ -1,25 +1,30 @@
 <template>
-  <div>
-    <h1>Synadia connection test</h1>
-    <p>Current route: {{ route.path }}</p>
-    <a href="https://nuxt.com/docs/getting-started/routing" target="_blank"
-      >Learn more about Nuxt Routing</a
-    >
+  <PageWrapperWithHeaderSlim title="Dash">
+    <template #header-content>{{ ncInfo?.server_name }}</template>
+    <div>
+      <h1>Synadia connection test</h1>
+      <p>Current route: {{ route.path }}</p>
+      <a href="https://nuxt.com/docs/getting-started/routing" target="_blank"
+        >Learn more about Nuxt Routing</a
+      >
 
-    <div>
-      <UIcon class="w-10 h-10" name="i-skill-icons-gcp-light" />
-      <UIcon class="w-10 h-10" name="i-skill-icons-azure-light" />
+      <div>
+        <UIcon class="w-10 h-10" name="i-skill-icons-gcp-light" />
+        <UIcon class="w-10 h-10" name="i-skill-icons-azure-light" />
+      </div>
+      <div>
+        <UIcon class="w-10 h-10" name="i-fluent-rocket-24-filled" />
+        <UIcon class="w-10 h-10" name="i-fluent-branch-24-filled" />
+      </div>
     </div>
-    <div>
-      <UIcon class="w-10 h-10" name="i-fluent-rocket-24-filled" />
-      <UIcon class="w-10 h-10" name="i-fluent-branch-24-filled" />
-    </div>
-  </div>
+  </PageWrapperWithHeaderSlim>
 </template>
 
 <script setup lang="ts">
-import { StringCodec, connect, credsAuthenticator } from "nats.ws";
+import { ServerInfo, StringCodec, connect, credsAuthenticator } from "nats.ws";
 const route = useRoute();
+
+const ncInfo = ref<ServerInfo>();
 
 if (process.client) {
   const sc = StringCodec();
@@ -38,5 +43,6 @@ if (process.client) {
   console.log(`connected to ${nc.getServer()}`);
 
   console.log(nc.info);
+  ncInfo.value = nc.info;
 }
 </script>
