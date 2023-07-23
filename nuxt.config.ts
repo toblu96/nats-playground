@@ -2,9 +2,12 @@
 export default defineNuxtConfig({
   devtools: {
     enabled: true,
-
-    timeline: {
-      enabled: true,
-    },
+  },
+  modules: ["@nuxthq/ui"],
+  colorMode: {
+    preference: "light",
+  },
+  ui: {
+    icons: ["fluent", "skill-icons"],
   },
 });

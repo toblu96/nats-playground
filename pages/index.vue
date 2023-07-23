@@ -5,6 +5,15 @@
     <a href="https://nuxt.com/docs/getting-started/routing" target="_blank"
       >Learn more about Nuxt Routing</a
     >
+
+    <div>
+      <UIcon class="w-10 h-10" name="i-skill-icons-gcp-light" />
+      <UIcon class="w-10 h-10" name="i-skill-icons-azure-light" />
+    </div>
+    <div>
+      <UIcon class="w-10 h-10" name="i-fluent-rocket-24-filled" />
+      <UIcon class="w-10 h-10" name="i-fluent-branch-24-filled" />
+    </div>
   </div>
 </template>
 
