@@ -34,9 +34,11 @@
       </ClientOnly>
     </template>
     <div>
-      <pre class="h-96 overflow-auto border rounded p-4 border-gray-200">{{
-        messages
-      }}</pre>
+      <ClientOnly>
+        <pre class="h-96 overflow-auto border rounded p-4 border-gray-200">{{
+          messages
+        }}</pre>
+      </ClientOnly>
       <form
         @submit.prevent="publishMessage(message)"
         class="flex space-x-2 mt-4 w-full justify-end"
@@ -92,7 +94,22 @@ if (process.client) {
   });
 
   nc.publish("chat", jc.encode({ msg: "Hi there! Type a message :)" }));
-  console.log(nc.jetstream().consumers);
+  console.log(nc.jetstream().getOptions());
+  const jsm = await nc.jetstreamManager();
+
+  // list all the streams, the `next()` function
+  // retrieves a paged result.
+  const streams = await jsm.streams.list().next();
+  streams.forEach((si) => {
+    console.log(si);
+  });
+
+  // add a stream
+  const stream = "teststream";
+  const subj = `teststream.*`;
+  await jsm.streams.add({ name: stream, subjects: [subj], max_bytes: 20 });
+
+  console.log(await jsm.streams.list().next());
 }
 
 const publishMessage = (msg: string) => {
